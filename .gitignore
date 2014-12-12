@@ -24,3 +24,12 @@ proguard/
 
 # Log Files
 *.log
+
+Sample/.classpath
+Sample/.project
+Sample/.settings/
+Sample/project.properties
+library/.classpath
+library/.project
+library/.settings/
+library/project.properties

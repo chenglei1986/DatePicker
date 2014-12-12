@@ -123,7 +123,7 @@ public class NumberPicker extends View {
 		mMinimumFlingVelocity = configuration.getScaledMinimumFlingVelocity();
         mMaximumFlingVelocity = configuration.getScaledMaximumFlingVelocity() / SELECTOR_MAX_FLING_VELOCITY_ADJUSTMENT;
         
-		mFlingScroller = new Scroller(getContext(), null, true);
+		mFlingScroller = new Scroller(getContext(), null);
 		mAdjustScroller = new Scroller(getContext(), new DecelerateInterpolator(2.5f));
 	}
 	

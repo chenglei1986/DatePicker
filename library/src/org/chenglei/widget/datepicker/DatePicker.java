@@ -25,11 +25,7 @@ public class DatePicker extends LinearLayout implements NumberPicker.OnValueChan
 	}
 	
 	public DatePicker(Context context, AttributeSet attrs) {
-		this(context, null, 0);
-	}
-	
-	public DatePicker(Context context, AttributeSet attrs, int defStyle) {
-		super(context, attrs, defStyle);
+		super(context, attrs);
 		mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		init();
 	}
