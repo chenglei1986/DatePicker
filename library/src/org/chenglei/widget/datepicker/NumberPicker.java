@@ -22,19 +22,33 @@ import android.widget.Scroller;
 
 public class NumberPicker extends View {
 
+	/**
+	 * View width 
+	 */
 	private int mWidth;
+	
+	/**
+	 * View height
+	 */
 	private int mHeight;
 	
 	private TextPaint mTextPaintHighLight;
 	private TextPaint mTextPaintNormal;
 	private TextPaint mTextPaintFlag;
-	private Paint mPaintHighLightRect;
+	
+	/**
+	 * Paint used for drawing lines besides the number in the middle of the view
+	 */
+	private Paint mLinePaint;
+	
+	/**
+	 * Paint used for drawing background, which has a LinearGradient Shader.
+	 */
 	private Paint mBackgroundPaint;
 	
-	private Paint mLinePaint;
 	private Rect mTextBoundsHighLight;
 	private Rect mTextBoundsNormal;
-	private NumberHolder[] mTextYAxisArray = new NumberHolder[7];
+	private NumberHolder[] mTextYAxisArray;
 	private int mStartYPos;
 	private int mEndYPos;
 	
@@ -46,40 +60,79 @@ public class NumberPicker extends View {
 	private static final int DEFAULT_TEXT_COLOR_HIGH_LIGHT = Color.rgb(0, 150, 136);
 	private static final int DEFAULT_TEXT_COLOR_NORMAL = Color.rgb(0, 150, 136);
 	private static final int DEFAULT_FLAG_TEXT_COLOR = Color.rgb(0, 150, 136);
+	private static final int DEFAULT_BACKGROUND_COLOR = Color.rgb(255, 255, 255);
+	
 	private static final float DEFAULT_TEXT_SIZE_HIGH_LIGHT = 36;
 	private static final float DEFAULT_TEXT_SIZE_NORMAL = 32;
 	private static final float DEFAULT_FLAG_TEXT_SIZE = 24;
 	
 	private static final int DEFAULT_VERTICAL_SPACING = 16;
 	
+	private static final int DEFAULT_LINES = 5;
+	
 	private int mTextColorHighLight;
 	private int mTextColorNormal;
+	
 	private float mTextSizeHighLight;
 	private float mTextSizeNormal;
 	
 	private int mStartNumber;
 	private int mEndNumber;
 	private int mCurrentNumber;
+	
+	/**
+	 * Space between bottom of the number above and the top of the number below.
+	 */
 	private int mVerticalSpacing;
 	
+	/**
+	 * Text to be drawn at the top-right of the highlight number
+	 */
 	private String mFlagText;
+	
 	private int mFlagTextColor;
+	
 	private float mFlagTextSize;
 	
+	/**
+	 * Number array form {@link #mStartNumber} to {@link #mEndNumber}
+	 */
 	private int[] mNumberArray;
-	private int mCurrNumPos;
+	
+	/**
+	 * The index of the highlight number in the {@link #mNumberArray}
+	 */
+	private int mCurrNumIndex;
+	
 	private int mTouchSlop;
 	
 	private RectF mHighLightRect;
+	
 	private Rect mTextBoundsFlag;
 	
 	private int mScrollState = OnScrollListener.SCROLL_STATE_IDLE;
+	
 	private int mTouchAction = MotionEvent.ACTION_CANCEL;
 	
 	private Scroller mFlingScroller;
 	private Scroller mAdjustScroller;
+	
 	private int mMinimumFlingVelocity;
 	private int mMaximumFlingVelocity;
+	
+	private int mBackgroundColor;
+	
+	private int mStartY;
+	private int mCurrY;
+	private int mOffectY;
+	private int mSpacing;
+	private boolean mCanScroll;
+	private VelocityTracker mVelocityTracker;
+	
+	/**
+	 * How many number will be displayed in the view
+	 */
+	private int mLines;
 	
 	public NumberPicker(Context context) {
 		this(context, null);
@@ -110,6 +163,10 @@ public class NumberPicker extends View {
 		mFlagText = a.getString(R.styleable.NumberPicker_flagText);
 		mFlagTextColor = a.getColor(R.styleable.NumberPicker_flagTextColor, DEFAULT_FLAG_TEXT_COLOR);
 		mFlagTextSize = a.getDimension(R.styleable.NumberPicker_flagTextSize, DEFAULT_FLAG_TEXT_SIZE);
+		
+		mBackgroundColor = a.getColor(R.styleable.NumberPicker_backgroundColor, DEFAULT_BACKGROUND_COLOR);
+		
+		mLines = a.getInteger(R.styleable.NumberPicker_lines, DEFAULT_LINES);
 	}
 
 	private void init() {
@@ -146,7 +203,9 @@ public class NumberPicker extends View {
 			mNumberArray[i] = mStartNumber + i;
 		}
 		
-		mCurrNumPos = mCurrentNumber - mStartNumber;
+		mCurrNumIndex = mCurrentNumber - mStartNumber;
+		
+		mTextYAxisArray = new NumberHolder[mLines + 2];
 	}
 	
 	private void initPaint() {
@@ -168,16 +227,12 @@ public class NumberPicker extends View {
 		mTextPaintFlag.setFlags(TextPaint.ANTI_ALIAS_FLAG);
 		mTextPaintFlag.setTextAlign(Align.LEFT);
 		
-		mPaintHighLightRect = new Paint();
-		mPaintHighLightRect.setColor(mTextColorHighLight);
-		mPaintHighLightRect.setStyle(Paint.Style.STROKE);
-		mPaintHighLightRect.setStrokeWidth(5);
-		
-		mBackgroundPaint = new Paint();
-		
-		
 		mLinePaint = new Paint();
 		mLinePaint.setColor(mTextColorHighLight);
+		mLinePaint.setStyle(Paint.Style.STROKE);
+		mLinePaint.setStrokeWidth(5);
+		
+		mBackgroundPaint = new Paint();
 	}
 	
 	private void initRects() {
@@ -188,6 +243,10 @@ public class NumberPicker extends View {
 	
 	private void measureText() {
 		
+		/*
+		 * To make sure the text bounds of the different number are exactly the same,
+		 * we turn the number such as "2014" into "0000".
+		 */
 		String text = String.valueOf(mEndNumber);
 		int length = text.length();
 		StringBuilder builder = new StringBuilder();
@@ -195,8 +254,10 @@ public class NumberPicker extends View {
 			builder.append("0");
 		}
 		text = builder.toString();
+		
 		mTextPaintHighLight.getTextBounds(text, 0, text.length(), mTextBoundsHighLight);
 		mTextPaintNormal.getTextBounds(text, 0, text.length(), mTextBoundsNormal);
+		
 		if (mFlagText != null) {
 			mTextPaintFlag.getTextBounds(mFlagText, 0, mFlagText.length(), mTextBoundsFlag);
 		}
@@ -205,15 +266,20 @@ public class NumberPicker extends View {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		
-		//canvas.drawColor(Color.WHITE);
-		canvas.drawLine(0, mHighLightRect.top, mWidth, mHighLightRect.top, mPaintHighLightRect);
-		canvas.drawLine(0, mHighLightRect.bottom, mWidth, mHighLightRect.bottom, mPaintHighLightRect);
+		// Background color
+		canvas.drawColor(mBackgroundColor);
 		
+		// Lines
+		canvas.drawLine(0, mHighLightRect.top, mWidth, mHighLightRect.top, mLinePaint);
+		canvas.drawLine(0, mHighLightRect.bottom, mWidth, mHighLightRect.bottom, mLinePaint);
+		
+		// Flag text
 		if (mFlagText != null) {
 			int x = (mWidth + mTextBoundsHighLight.width() + 6) / 2;
 			canvas.drawText(mFlagText, x, mHeight / 2, mTextPaintFlag);
 		}
 		
+		// Draw numbers
 		for (int i = 0; i < mTextYAxisArray.length; i++) {
 			if (mTextYAxisArray[i].mmIndex >= 0 && mTextYAxisArray[i].mmIndex <= mEndNumber - mStartNumber) {
 				canvas.drawText(
@@ -224,14 +290,20 @@ public class NumberPicker extends View {
 			}
 		}
 		
+		// Draw shader
 		canvas.drawRect(0, 0, mWidth, mHeight, mBackgroundPaint);
 		
+		// Scroll the number to the position where exactly they should be.
+		// Only do this when the finger no longer touch the screen and the fling action is finished.
 		if (MotionEvent.ACTION_UP == mTouchAction && mFlingScroller.isFinished()) {
 			adjustYPosition();
 		}
 		
 	}
 	
+	/**
+	 * Scroll the number to the position where exactly they should be
+	 */
 	private void adjustYPosition() {
 		if (mAdjustScroller.isFinished()) {
 			mStartY = 0;
@@ -262,20 +334,22 @@ public class NumberPicker extends View {
         if (heightMode == MeasureSpec.EXACTLY) {
         	mHeight = heightSize;
         } else {
-        	mHeight = 5 * mTextBoundsNormal.height() + 4 * mVerticalSpacing + getPaddingTop() + getPaddingBottom();
+        	mHeight = mLines * mTextBoundsNormal.height() + (mLines - 1) * mVerticalSpacing + getPaddingTop() + getPaddingBottom();
         }
 		
 		setMeasuredDimension(mWidth, mHeight);
 		
-		
+		/*
+		 * Do some initialization work when the view got a size
+		 */
 		if (null == mHighLightRect) {
 			
 			Shader shader = new LinearGradient(0, 0, 0, mHeight, new int[] {
-					0xDFFFFFFF,
-					0xCFFFFFFF, 
-					0x00FFFFFF,
-					0xCFFFFFFF,
-					0xDFFFFFFF }, 
+					mBackgroundColor & 0xDFFFFFFF,
+					mBackgroundColor & 0xCFFFFFFF, 
+					mBackgroundColor & 0x00FFFFFF,
+					mBackgroundColor & 0xCFFFFFFF,
+					mBackgroundColor & 0xDFFFFFFF }, 
 					null, Shader.TileMode.CLAMP);
 			mBackgroundPaint.setShader(shader);
 			mSpacing = mVerticalSpacing + mTextBoundsNormal.height();
@@ -294,7 +368,7 @@ public class NumberPicker extends View {
 	
 	private void initTextYAxisArray() {
 		for (int i = 0; i < mTextYAxisArray.length; i++) {
-			NumberHolder textYAxis = new NumberHolder(mCurrNumPos - 3 + i, mStartYPos + i * mSpacing);
+			NumberHolder textYAxis = new NumberHolder(mCurrNumIndex - 3 + i, mStartYPos + i * mSpacing);
 			if (textYAxis.mmIndex > mNumberArray.length - 1) {
 				textYAxis.mmIndex -= mNumberArray.length;
 			} else if (textYAxis.mmIndex < 0) {
@@ -303,13 +377,6 @@ public class NumberPicker extends View {
 			mTextYAxisArray[i] = textYAxis;
 		}
 	}
-	
-	private int mStartY;
-	private int mCurrY;
-	private int mOffectY;
-	private int mSpacing;
-	private boolean mCanScroll;
-	private VelocityTracker mVelocityTracker;
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -395,28 +462,33 @@ public class NumberPicker extends View {
 		mStartY = mCurrY;
 	}
 	
+	/**
+	 * Make {@link #mTextYAxisArray} to be a circular array
+	 * 
+	 * @param offectY
+	 */
 	private void computeYPos(int offectY) {
 		for (int i = 0; i < mTextYAxisArray.length; i++) {
 
 			mTextYAxisArray[i].mmPos += offectY;
 			if (mTextYAxisArray[i].mmPos >= mEndYPos + mSpacing) {
-				mTextYAxisArray[i].mmPos -= 7 * mSpacing;
-				mTextYAxisArray[i].mmIndex -= 7;
+				mTextYAxisArray[i].mmPos -= (mLines + 2) * mSpacing;
+				mTextYAxisArray[i].mmIndex -= (mLines + 2);
 				if (mTextYAxisArray[i].mmIndex < 0) {
 					mTextYAxisArray[i].mmIndex += mNumberArray.length;
 				}
 			} else if (mTextYAxisArray[i].mmPos <= mStartYPos - mSpacing) {
-				mTextYAxisArray[i].mmPos += 7 * mSpacing;
-				mTextYAxisArray[i].mmIndex += 7;
+				mTextYAxisArray[i].mmPos += (mLines + 2) * mSpacing;
+				mTextYAxisArray[i].mmIndex += (mLines + 2);
 				if (mTextYAxisArray[i].mmIndex > mNumberArray.length - 1) {
 					mTextYAxisArray[i].mmIndex -= mNumberArray.length;
 				}
 			}
 			
 			if (Math.abs(mTextYAxisArray[i].mmPos - mHeight / 2) < mSpacing / 4) {
-				mCurrNumPos = mTextYAxisArray[i].mmIndex;
+				mCurrNumIndex = mTextYAxisArray[i].mmIndex;
 				int oldNumber = mCurrentNumber;
-				mCurrentNumber = mNumberArray[mCurrNumPos];
+				mCurrentNumber = mNumberArray[mCurrNumIndex];
 				if (mOnValueChangeListener != null && oldNumber != mCurrentNumber) {
 					mOnValueChangeListener.onValueChange(this, oldNumber, mCurrentNumber);
 				}
@@ -440,7 +512,14 @@ public class NumberPicker extends View {
 	
 	class NumberHolder {
 		
+		/**
+		 * Array index of the number in {@link #mTextYAxisArray}
+		 */
 		public int mmIndex;
+		
+		/**
+		 * Position of the number in the view
+		 */
 		public int mmPos;
 		
 		public NumberHolder(int index, int position) {
@@ -454,7 +533,6 @@ public class NumberPicker extends View {
 		mStartNumber = startNumber;
 		verifyNumber();
 		initTextYAxisArray();
-		//computeYPos(0);
 		invalidate();
 	}
 	
@@ -462,7 +540,6 @@ public class NumberPicker extends View {
 		mEndNumber = endNumber;
 		verifyNumber();
 		initTextYAxisArray();
-		//computeYPos(0);
 		invalidate();
 	}
 	
@@ -470,7 +547,6 @@ public class NumberPicker extends View {
 		mCurrentNumber = currentNumber;
 		verifyNumber();
 		initTextYAxisArray();
-		//computeYPos(0);
 		invalidate();
 	}
 	

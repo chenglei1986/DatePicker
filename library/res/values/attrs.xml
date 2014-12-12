@@ -13,6 +13,8 @@
         <attr name="flagText" format="string|reference" />
         <attr name="flagTextSize" format="dimension" />
         <attr name="flagTextColor" format="color" />
+        <attr name="backgroundColor" format="color" />
+        <attr name="lines" format="integer" />
     </declare-styleable>
     
 
