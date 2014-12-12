@@ -499,11 +499,11 @@ public class NumberPicker extends View {
 	private void fling(int startYVelocity) {
 		int maxY = 0;
 		if (startYVelocity > 0) {
-			maxY = (int) (mTextSizeNormal * (mCurrentNumber - mStartNumber));
+			maxY = (int) (mTextSizeNormal * 10);
 			mStartY = 0;
 			mFlingScroller.fling(0, 0, 0, startYVelocity, 0, 0, 0, maxY);
 		} else if (startYVelocity < 0) {
-			maxY = (int) (mTextSizeNormal * (mEndNumber - mCurrentNumber));
+			maxY = (int) (mTextSizeNormal * 10);
 			mStartY = maxY;
 			mFlingScroller.fling(0, maxY, 0, startYVelocity, 0, 0, 0, maxY);
 		}
