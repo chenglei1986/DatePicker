@@ -41,9 +41,8 @@ public class DatePicker extends LinearLayout implements NumberPicker.OnValueChan
 		mMonthPicker.setOnValueChangeListener(this);
 		mDayOfMonthPicker.setOnValueChangeListener(this);
 		
-		if (getResources().getConfiguration().locale != Locale.CHINESE 
-				&& getResources().getConfiguration().locale != Locale.TAIWAN
-				&& getResources().getConfiguration().locale != Locale.TRADITIONAL_CHINESE) {
+		if (!getResources().getConfiguration().locale.getCountry().equals("CN")
+				&& !getResources().getConfiguration().locale.getCountry().equals("TW")) {
 			
 			String[] monthNames = getResources().getStringArray(R.array.month_name);
 			mMonthPicker.setCustomTextArray(monthNames);
