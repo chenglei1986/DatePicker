@@ -129,10 +129,18 @@ public class NumberPicker extends View {
 	private boolean mCanScroll;
 	private VelocityTracker mVelocityTracker;
 	
+	private OnScrollListener mOnScrollListener;
+	private OnValueChangeListener mOnValueChangeListener;
+	
+	
 	/**
 	 * How many number will be displayed in the view
 	 */
 	private int mLines;
+	
+	private Sound mSound;
+	
+	private boolean mSoundEffectEnable = true;
 	
 	public NumberPicker(Context context) {
 		this(context, null);
@@ -489,8 +497,14 @@ public class NumberPicker extends View {
 				mCurrNumIndex = mTextYAxisArray[i].mmIndex;
 				int oldNumber = mCurrentNumber;
 				mCurrentNumber = mNumberArray[mCurrNumIndex];
-				if (mOnValueChangeListener != null && oldNumber != mCurrentNumber) {
-					mOnValueChangeListener.onValueChange(this, oldNumber, mCurrentNumber);
+				if (oldNumber != mCurrentNumber) {
+					if (mOnValueChangeListener != null) {
+						mOnValueChangeListener.onValueChange(this, oldNumber, mCurrentNumber);						
+					}
+					// Play a sound effect
+					if (mSound != null && mSoundEffectEnable) {
+						mSound.playSoundEffect();
+					}
 				}
 			}
 		}
@@ -600,9 +614,6 @@ public class NumberPicker extends View {
         public void onScrollStateChange(NumberPicker picker, int scrollState);
 	}
 	
-	private OnScrollListener mOnScrollListener;
-	private OnValueChangeListener mOnValueChangeListener;
-	
 	public void setOnScrollListener(OnScrollListener l) {
 		mOnScrollListener = l;
 	}
@@ -622,6 +633,16 @@ public class NumberPicker extends View {
         if (mOnScrollListener != null) {
             mOnScrollListener.onScrollStateChange(this, scrollState);
         }
+    }
+    
+    public void setSoundEffect(Sound sound) {
+    	mSound = sound;
+    }
+    
+    @Override
+    public void setSoundEffectsEnabled(boolean soundEffectsEnabled) {
+    	super.setSoundEffectsEnabled(soundEffectsEnabled);
+    	mSoundEffectEnable = soundEffectsEnabled;
     }
 
 }

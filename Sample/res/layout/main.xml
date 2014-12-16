@@ -7,6 +7,7 @@
     android:orientation="vertical" >
 
     <org.chenglei.widget.datepicker.DatePicker
+        android:id="@+id/date_picker"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center" />

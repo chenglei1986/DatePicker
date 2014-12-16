@@ -108,5 +108,19 @@ public class DatePicker extends LinearLayout implements NumberPicker.OnValueChan
     public int getDayOfMonth() {
     	return mCalendar.get(Calendar.DAY_OF_MONTH);
     }
+    
+    public void setSoundEffect(Sound sound) {
+    	mYearPicker.setSoundEffect(sound);
+    	mMonthPicker.setSoundEffect(sound);
+    	mDayOfMonthPicker.setSoundEffect(sound);
+    }
+    
+    @Override
+    public void setSoundEffectsEnabled(boolean soundEffectsEnabled) {
+    	super.setSoundEffectsEnabled(soundEffectsEnabled);
+    	mYearPicker.setSoundEffectsEnabled(soundEffectsEnabled);
+    	mMonthPicker.setSoundEffectsEnabled(soundEffectsEnabled);
+    	mDayOfMonthPicker.setSoundEffectsEnabled(soundEffectsEnabled);
+    }
 
 }
