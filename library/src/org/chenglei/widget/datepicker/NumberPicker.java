@@ -41,10 +41,8 @@ public class NumberPicker extends View {
 	 */
 	private Paint mLinePaint;
 	
-	/**
-	 * Paint used for drawing background, which has a LinearGradient Shader.
-	 */
-	private Paint mBackgroundPaint;
+	private Paint mShaderPaintTop;
+	private Paint mShaderPaintBottom;
 	
 	private Rect mTextBoundsHighLight;
 	private Rect mTextBoundsNormal;
@@ -218,7 +216,7 @@ public class NumberPicker extends View {
 		
 		mCurrNumIndex = mCurrentNumber - mStartNumber;
 		
-		mTextYAxisArray = new NumberHolder[mLines + 2];
+		mTextYAxisArray = new NumberHolder[mLines + 4];
 	}
 	
 	private void initPaint() {
@@ -245,7 +243,8 @@ public class NumberPicker extends View {
 		mLinePaint.setStyle(Paint.Style.STROKE);
 		mLinePaint.setStrokeWidth(2 * mDensity);
 		
-		mBackgroundPaint = new Paint();
+		mShaderPaintTop = new Paint();
+		mShaderPaintBottom = new Paint();
 	}
 	
 	private void initRects() {
@@ -310,7 +309,8 @@ public class NumberPicker extends View {
 		}
 		
 		// Draw shader
-		canvas.drawRect(0, 0, mWidth, mHeight, mBackgroundPaint);
+		canvas.drawRect(0, 0, mWidth, mHighLightRect.top, mShaderPaintTop);
+		canvas.drawRect(0, mHighLightRect.bottom, mWidth, mHeight, mShaderPaintBottom);
 		
 		// Scroll the number to the position where exactly they should be.
 		// Only do this when the finger no longer touch the screen and the fling action is finished.
@@ -362,26 +362,31 @@ public class NumberPicker extends View {
 		 * Do some initialization work when the view got a size
 		 */
 		if (null == mHighLightRect) {
+			mHighLightRect = new RectF();
+			mHighLightRect.left = 0;
+			mHighLightRect.right = mWidth;
+			mHighLightRect.top = (mHeight - mTextBoundsHighLight.height() - mVerticalSpacing) / 2;
+			mHighLightRect.bottom = (mHeight + mTextBoundsHighLight.height() + mVerticalSpacing) / 2;
 			
-			Shader shader = new LinearGradient(0, 0, 0, mHeight, new int[] {
+			Shader topShader = new LinearGradient(0, 0, 0, mHighLightRect.top, new int[] {
 					mBackgroundColor & 0xDFFFFFFF,
 					mBackgroundColor & 0xCFFFFFFF, 
+					mBackgroundColor & 0x00FFFFFF }, 
+					null, Shader.TileMode.CLAMP);
+			
+			Shader bottomShader = new LinearGradient(0, mHighLightRect.bottom, 0, mHeight, new int[] {
 					mBackgroundColor & 0x00FFFFFF,
 					mBackgroundColor & 0xCFFFFFFF,
 					mBackgroundColor & 0xDFFFFFFF }, 
 					null, Shader.TileMode.CLAMP);
-			mBackgroundPaint.setShader(shader);
+			mShaderPaintTop.setShader(topShader);
+			mShaderPaintBottom.setShader(bottomShader);
 			mSpacing = mVerticalSpacing + mTextBoundsNormal.height();
 			mStartYPos = mHeight / 2 - 3 * mSpacing;
 			mEndYPos = mHeight / 2 + 3 * mSpacing;
 
 			initTextYAxisArray();
 			
-			mHighLightRect = new RectF();
-			mHighLightRect.left = 0;
-			mHighLightRect.right = mWidth;
-			mHighLightRect.top = (mHeight - mTextBoundsHighLight.height() - mVerticalSpacing) / 2;
-			mHighLightRect.bottom = (mHeight + mTextBoundsHighLight.height() + mVerticalSpacing) / 2;
 		}
 	}
 	
