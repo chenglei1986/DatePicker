@@ -64,7 +64,7 @@ public class NumberPicker extends View {
 	
 	private static final float DEFAULT_TEXT_SIZE_HIGH_LIGHT = 36;
 	private static final float DEFAULT_TEXT_SIZE_NORMAL = 32;
-	private static final float DEFAULT_FLAG_TEXT_SIZE = 24;
+	private static final float DEFAULT_FLAG_TEXT_SIZE = 12;
 	
 	private static final int DEFAULT_VERTICAL_SPACING = 16;
 	
@@ -132,7 +132,6 @@ public class NumberPicker extends View {
 	private OnScrollListener mOnScrollListener;
 	private OnValueChangeListener mOnValueChangeListener;
 	
-	
 	/**
 	 * How many number will be displayed in the view
 	 */
@@ -141,6 +140,10 @@ public class NumberPicker extends View {
 	private Sound mSound;
 	
 	private boolean mSoundEffectEnable = true;
+	
+	private float mDensity;
+
+	private String[] mTextArray;
 	
 	public NumberPicker(Context context) {
 		this(context, null);
@@ -152,6 +155,7 @@ public class NumberPicker extends View {
 
 	public NumberPicker(Context context, AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
+		mDensity = getResources().getDisplayMetrics().density;
 		readAttrs(context, attrs, defStyleAttr);
 		init();
 	}
@@ -161,16 +165,16 @@ public class NumberPicker extends View {
 		
 		mTextColorHighLight = a.getColor(R.styleable.NumberPicker_textColorHighLight, DEFAULT_TEXT_COLOR_HIGH_LIGHT);
 		mTextColorNormal = a.getColor(R.styleable.NumberPicker_textColorNormal, DEFAULT_TEXT_COLOR_NORMAL);
-		mTextSizeHighLight = a.getDimension(R.styleable.NumberPicker_textSizeHighLight, DEFAULT_TEXT_SIZE_HIGH_LIGHT);
-		mTextSizeNormal = a.getDimension(R.styleable.NumberPicker_textSizeNormal, DEFAULT_TEXT_SIZE_NORMAL);
+		mTextSizeHighLight = a.getDimension(R.styleable.NumberPicker_textSizeHighLight, DEFAULT_TEXT_SIZE_HIGH_LIGHT * mDensity);
+		mTextSizeNormal = a.getDimension(R.styleable.NumberPicker_textSizeNormal, DEFAULT_TEXT_SIZE_NORMAL * mDensity);
 		mStartNumber = a.getInteger(R.styleable.NumberPicker_startNumber, 0);
 		mEndNumber = a.getInteger(R.styleable.NumberPicker_endNumber, 0);
 		mCurrentNumber = a.getInteger(R.styleable.NumberPicker_currentNumber, 0);
-		mVerticalSpacing = (int) a.getDimension(R.styleable.NumberPicker_verticalSpacing, DEFAULT_VERTICAL_SPACING);
+		mVerticalSpacing = (int) a.getDimension(R.styleable.NumberPicker_verticalSpacing, DEFAULT_VERTICAL_SPACING * mDensity);
 		
 		mFlagText = a.getString(R.styleable.NumberPicker_flagText);
 		mFlagTextColor = a.getColor(R.styleable.NumberPicker_flagTextColor, DEFAULT_FLAG_TEXT_COLOR);
-		mFlagTextSize = a.getDimension(R.styleable.NumberPicker_flagTextSize, DEFAULT_FLAG_TEXT_SIZE);
+		mFlagTextSize = a.getDimension(R.styleable.NumberPicker_flagTextSize, DEFAULT_FLAG_TEXT_SIZE * mDensity);
 		
 		mBackgroundColor = a.getColor(R.styleable.NumberPicker_backgroundColor, DEFAULT_BACKGROUND_COLOR);
 		
@@ -178,6 +182,7 @@ public class NumberPicker extends View {
 	}
 
 	private void init() {
+		
 		verifyNumber();
 		initPaint();
 		initRects();
@@ -238,7 +243,7 @@ public class NumberPicker extends View {
 		mLinePaint = new Paint();
 		mLinePaint.setColor(mTextColorHighLight);
 		mLinePaint.setStyle(Paint.Style.STROKE);
-		mLinePaint.setStrokeWidth(5);
+		mLinePaint.setStrokeWidth(2 * mDensity);
 		
 		mBackgroundPaint = new Paint();
 	}
@@ -290,8 +295,14 @@ public class NumberPicker extends View {
 		// Draw numbers
 		for (int i = 0; i < mTextYAxisArray.length; i++) {
 			if (mTextYAxisArray[i].mmIndex >= 0 && mTextYAxisArray[i].mmIndex <= mEndNumber - mStartNumber) {
+				String text = null;
+				if (mTextArray != null) {
+					text = mTextArray[mTextYAxisArray[i].mmIndex];
+				} else {
+					text = String.valueOf(mNumberArray[mTextYAxisArray[i].mmIndex]);
+				}
 				canvas.drawText(
-						String.valueOf(mNumberArray[mTextYAxisArray[i].mmIndex]),
+						text,
 						mWidth / 2,
 						mTextYAxisArray[i].mmPos + mTextBoundsNormal.height() / 2,
 						mTextPaintNormal);
@@ -643,6 +654,16 @@ public class NumberPicker extends View {
     public void setSoundEffectsEnabled(boolean soundEffectsEnabled) {
     	super.setSoundEffectsEnabled(soundEffectsEnabled);
     	mSoundEffectEnable = soundEffectsEnabled;
+    }
+    
+    /**
+     * Display custom text array instead of numbers
+     * 
+     * @param textArray
+     */
+    public void setCustomTextArray(String[] textArray) {
+    	mTextArray = textArray;
+    	invalidate();
     }
 
 }

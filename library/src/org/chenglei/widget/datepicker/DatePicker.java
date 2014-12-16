@@ -2,6 +2,7 @@ package org.chenglei.widget.datepicker;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import android.content.Context;
 import android.util.AttributeSet;
@@ -39,6 +40,15 @@ public class DatePicker extends LinearLayout implements NumberPicker.OnValueChan
 		mYearPicker.setOnValueChangeListener(this);
 		mMonthPicker.setOnValueChangeListener(this);
 		mDayOfMonthPicker.setOnValueChangeListener(this);
+		
+		if (getResources().getConfiguration().locale != Locale.CHINESE 
+				&& getResources().getConfiguration().locale != Locale.TAIWAN
+				&& getResources().getConfiguration().locale != Locale.TRADITIONAL_CHINESE) {
+			
+			String[] monthNames = getResources().getStringArray(R.array.month_name);
+			mMonthPicker.setCustomTextArray(monthNames);
+			
+		}
 		
 		mCalendar = Calendar.getInstance();
 		setDate(mCalendar.getTime());
