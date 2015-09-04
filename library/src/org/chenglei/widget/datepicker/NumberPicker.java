@@ -10,6 +10,7 @@ import android.graphics.Paint.Align;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewConfigurationCompat;
 import android.text.TextPaint;
 import android.util.AttributeSet;
@@ -32,20 +33,18 @@ public class NumberPicker extends View {
 	 */
 	private int mHeight;
 	
-	private TextPaint mTextPaintHighLight;
-	private TextPaint mTextPaintNormal;
-	private TextPaint mTextPaintFlag;
+	private TextPaint mTextPaint;
+	private TextPaint mFlagTextPaint;
 	
 	/**
 	 * Paint used for drawing lines besides the number in the middle of the view
 	 */
-	private Paint mLinePaint;
+	private Paint mDividerLinePaint;
 	
 	private Paint mShaderPaintTop;
 	private Paint mShaderPaintBottom;
 	
-	private Rect mTextBoundsHighLight;
-	private Rect mTextBoundsNormal;
+	private Rect mTextBounds;
 	private NumberHolder[] mTextYAxisArray;
 	private int mStartYPos;
 	private int mEndYPos;
@@ -55,24 +54,20 @@ public class NumberPicker extends View {
      */
     private static final int SELECTOR_MAX_FLING_VELOCITY_ADJUSTMENT = 8;
 	
-	private static final int DEFAULT_TEXT_COLOR_HIGH_LIGHT = Color.rgb(0, 150, 136);
-	private static final int DEFAULT_TEXT_COLOR_NORMAL = Color.rgb(0, 150, 136);
+	private static final int DEFAULT_TEXT_COLOR = Color.rgb(0, 150, 136);
 	private static final int DEFAULT_FLAG_TEXT_COLOR = Color.rgb(0, 150, 136);
 	private static final int DEFAULT_BACKGROUND_COLOR = Color.rgb(255, 255, 255);
 	
-	private static final float DEFAULT_TEXT_SIZE_HIGH_LIGHT = 36;
-	private static final float DEFAULT_TEXT_SIZE_NORMAL = 32;
+	private static final float DEFAULT_TEXT_SIZE = 32;
 	private static final float DEFAULT_FLAG_TEXT_SIZE = 12;
 	
 	private static final int DEFAULT_VERTICAL_SPACING = 16;
 	
 	private static final int DEFAULT_LINES = 5;
 	
-	private int mTextColorHighLight;
-	private int mTextColorNormal;
+	private int mTextColor;
 	
-	private float mTextSizeHighLight;
-	private float mTextSizeNormal;
+	private float mTextSize;
 	
 	private int mStartNumber;
 	private int mEndNumber;
@@ -133,7 +128,7 @@ public class NumberPicker extends View {
 	/**
 	 * How many number will be displayed in the view
 	 */
-	private int mLines;
+	private int mRowNumber;
 	
 	private Sound mSound;
 	
@@ -161,10 +156,8 @@ public class NumberPicker extends View {
 	private void readAttrs(Context context, AttributeSet attrs, int defStyleAttr) {
 		final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.NumberPicker, defStyleAttr, 0);
 		
-		mTextColorHighLight = a.getColor(R.styleable.NumberPicker_textColorHighLight, DEFAULT_TEXT_COLOR_HIGH_LIGHT);
-		mTextColorNormal = a.getColor(R.styleable.NumberPicker_textColorNormal, DEFAULT_TEXT_COLOR_NORMAL);
-		mTextSizeHighLight = a.getDimension(R.styleable.NumberPicker_textSizeHighLight, DEFAULT_TEXT_SIZE_HIGH_LIGHT * mDensity);
-		mTextSizeNormal = a.getDimension(R.styleable.NumberPicker_textSizeNormal, DEFAULT_TEXT_SIZE_NORMAL * mDensity);
+		mTextColor = a.getColor(R.styleable.NumberPicker_textColor, DEFAULT_TEXT_COLOR);
+		mTextSize = a.getDimension(R.styleable.NumberPicker_textSize, DEFAULT_TEXT_SIZE * mDensity);
 		mStartNumber = a.getInteger(R.styleable.NumberPicker_startNumber, 0);
 		mEndNumber = a.getInteger(R.styleable.NumberPicker_endNumber, 0);
 		mCurrentNumber = a.getInteger(R.styleable.NumberPicker_currentNumber, 0);
@@ -176,7 +169,9 @@ public class NumberPicker extends View {
 		
 		mBackgroundColor = a.getColor(R.styleable.NumberPicker_backgroundColor, DEFAULT_BACKGROUND_COLOR);
 		
-		mLines = a.getInteger(R.styleable.NumberPicker_lines, DEFAULT_LINES);
+		mRowNumber = a.getInteger(R.styleable.NumberPicker_rowNumber, DEFAULT_LINES);
+		
+		a.recycle();
 	}
 
 	private void init() {
@@ -216,40 +211,33 @@ public class NumberPicker extends View {
 		
 		mCurrNumIndex = mCurrentNumber - mStartNumber;
 		
-		mTextYAxisArray = new NumberHolder[mLines + 4];
+		mTextYAxisArray = new NumberHolder[mRowNumber + 4];
 	}
 	
 	private void initPaint() {
-		mTextPaintHighLight = new TextPaint();
-		mTextPaintHighLight.setTextSize(mTextSizeHighLight);
-		mTextPaintHighLight.setColor(mTextColorHighLight);
-		mTextPaintHighLight.setFlags(TextPaint.ANTI_ALIAS_FLAG);
-		mTextPaintHighLight.setTextAlign(Align.CENTER);
+		mTextPaint = new TextPaint();
+		mTextPaint.setTextSize(mTextSize);
+		mTextPaint.setColor(mTextColor);
+		mTextPaint.setFlags(TextPaint.ANTI_ALIAS_FLAG);
+		mTextPaint.setTextAlign(Align.CENTER);
 		
-		mTextPaintNormal = new TextPaint();
-		mTextPaintNormal.setTextSize(mTextSizeNormal);
-		mTextPaintNormal.setColor(mTextColorNormal);
-		mTextPaintNormal.setFlags(TextPaint.ANTI_ALIAS_FLAG);
-		mTextPaintNormal.setTextAlign(Align.CENTER);
+		mFlagTextPaint = new TextPaint();
+		mFlagTextPaint.setTextSize(mFlagTextSize);
+		mFlagTextPaint.setColor(mFlagTextColor);
+		mFlagTextPaint.setFlags(TextPaint.ANTI_ALIAS_FLAG);
+		mFlagTextPaint.setTextAlign(Align.LEFT);
 		
-		mTextPaintFlag = new TextPaint();
-		mTextPaintFlag.setTextSize(mFlagTextSize);
-		mTextPaintFlag.setColor(mFlagTextColor);
-		mTextPaintFlag.setFlags(TextPaint.ANTI_ALIAS_FLAG);
-		mTextPaintFlag.setTextAlign(Align.LEFT);
-		
-		mLinePaint = new Paint();
-		mLinePaint.setColor(mTextColorHighLight);
-		mLinePaint.setStyle(Paint.Style.STROKE);
-		mLinePaint.setStrokeWidth(2 * mDensity);
+		mDividerLinePaint = new Paint();
+		mDividerLinePaint.setColor(mTextColor);
+		mDividerLinePaint.setStyle(Paint.Style.STROKE);
+		mDividerLinePaint.setStrokeWidth(2 * mDensity);
 		
 		mShaderPaintTop = new Paint();
 		mShaderPaintBottom = new Paint();
 	}
 	
 	private void initRects() {
-		mTextBoundsHighLight = new Rect();
-		mTextBoundsNormal = new Rect();
+		mTextBounds = new Rect();
 		mTextBoundsFlag = new Rect();
 	}
 	
@@ -267,11 +255,10 @@ public class NumberPicker extends View {
 		}
 		text = builder.toString();
 		
-		mTextPaintHighLight.getTextBounds(text, 0, text.length(), mTextBoundsHighLight);
-		mTextPaintNormal.getTextBounds(text, 0, text.length(), mTextBoundsNormal);
+		mTextPaint.getTextBounds(text, 0, text.length(), mTextBounds);
 		
 		if (mFlagText != null) {
-			mTextPaintFlag.getTextBounds(mFlagText, 0, mFlagText.length(), mTextBoundsFlag);
+			mFlagTextPaint.getTextBounds(mFlagText, 0, mFlagText.length(), mTextBoundsFlag);
 		}
 	}
 
@@ -282,13 +269,13 @@ public class NumberPicker extends View {
 		canvas.drawColor(mBackgroundColor);
 		
 		// Lines
-		canvas.drawLine(0, mHighLightRect.top, mWidth, mHighLightRect.top, mLinePaint);
-		canvas.drawLine(0, mHighLightRect.bottom, mWidth, mHighLightRect.bottom, mLinePaint);
+		canvas.drawLine(0, mHighLightRect.top, mWidth, mHighLightRect.top, mDividerLinePaint);
+		canvas.drawLine(0, mHighLightRect.bottom, mWidth, mHighLightRect.bottom, mDividerLinePaint);
 		
 		// Flag text
 		if (mFlagText != null) {
-			int x = (mWidth + mTextBoundsHighLight.width() + 6) / 2;
-			canvas.drawText(mFlagText, x, mHeight / 2, mTextPaintFlag);
+			int x = (mWidth + mTextBounds.width() + 6) / 2;
+			canvas.drawText(mFlagText, x, mHeight / 2, mFlagTextPaint);
 		}
 		
 		// Draw numbers
@@ -303,8 +290,8 @@ public class NumberPicker extends View {
 				canvas.drawText(
 						text,
 						mWidth / 2,
-						mTextYAxisArray[i].mmPos + mTextBoundsNormal.height() / 2,
-						mTextPaintNormal);
+						mTextYAxisArray[i].mmPos + mTextBounds.height() / 2,
+						mTextPaint);
 			}
 		}
 		
@@ -347,13 +334,13 @@ public class NumberPicker extends View {
             // Parent has told us how big to be. So be it.  
         	mWidth = widthSize;
         } else {
-        	mWidth = mTextBoundsHighLight.width() + getPaddingLeft() + getPaddingRight() + mTextBoundsFlag.width() + 6;
+        	mWidth = mTextBounds.width() + getPaddingLeft() + getPaddingRight() + mTextBoundsFlag.width() + 6;
         }
         
         if (heightMode == MeasureSpec.EXACTLY) {
         	mHeight = heightSize;
         } else {
-        	mHeight = mLines * mTextBoundsNormal.height() + (mLines - 1) * mVerticalSpacing + getPaddingTop() + getPaddingBottom();
+        	mHeight = mRowNumber * mTextBounds.height() + (mRowNumber - 1) * mVerticalSpacing + getPaddingTop() + getPaddingBottom();
         }
 		
 		setMeasuredDimension(mWidth, mHeight);
@@ -365,8 +352,8 @@ public class NumberPicker extends View {
 			mHighLightRect = new RectF();
 			mHighLightRect.left = 0;
 			mHighLightRect.right = mWidth;
-			mHighLightRect.top = (mHeight - mTextBoundsHighLight.height() - mVerticalSpacing) / 2;
-			mHighLightRect.bottom = (mHeight + mTextBoundsHighLight.height() + mVerticalSpacing) / 2;
+			mHighLightRect.top = (mHeight - mTextBounds.height() - mVerticalSpacing) / 2;
+			mHighLightRect.bottom = (mHeight + mTextBounds.height() + mVerticalSpacing) / 2;
 			
 			Shader topShader = new LinearGradient(0, 0, 0, mHighLightRect.top, new int[] {
 					mBackgroundColor & 0xDFFFFFFF,
@@ -381,7 +368,7 @@ public class NumberPicker extends View {
 					null, Shader.TileMode.CLAMP);
 			mShaderPaintTop.setShader(topShader);
 			mShaderPaintBottom.setShader(bottomShader);
-			mSpacing = mVerticalSpacing + mTextBoundsNormal.height();
+			mSpacing = mVerticalSpacing + mTextBounds.height();
 			mStartYPos = mHeight / 2 - 3 * mSpacing;
 			mEndYPos = mHeight / 2 + 3 * mSpacing;
 
@@ -412,9 +399,10 @@ public class NumberPicker extends View {
         }
         mVelocityTracker.addMovement(event);
 		
-		int action = event.getActionMasked();
+		int action = MotionEventCompat.getActionMasked(event);
 		mTouchAction = action;
 		if (MotionEvent.ACTION_DOWN == action) {
+			getParent().requestDisallowInterceptTouchEvent(true);
 			mStartY = (int) event.getY();
 			if (!mFlingScroller.isFinished() || !mAdjustScroller.isFinished()) {
 				mFlingScroller.forceFinished(true);
@@ -496,14 +484,14 @@ public class NumberPicker extends View {
 
 			mTextYAxisArray[i].mmPos += offectY;
 			if (mTextYAxisArray[i].mmPos >= mEndYPos + mSpacing) {
-				mTextYAxisArray[i].mmPos -= (mLines + 2) * mSpacing;
-				mTextYAxisArray[i].mmIndex -= (mLines + 2);
+				mTextYAxisArray[i].mmPos -= (mRowNumber + 2) * mSpacing;
+				mTextYAxisArray[i].mmIndex -= (mRowNumber + 2);
 				if (mTextYAxisArray[i].mmIndex < 0) {
 					mTextYAxisArray[i].mmIndex += mNumberArray.length;
 				}
 			} else if (mTextYAxisArray[i].mmPos <= mStartYPos - mSpacing) {
-				mTextYAxisArray[i].mmPos += (mLines + 2) * mSpacing;
-				mTextYAxisArray[i].mmIndex += (mLines + 2);
+				mTextYAxisArray[i].mmPos += (mRowNumber + 2) * mSpacing;
+				mTextYAxisArray[i].mmIndex += (mRowNumber + 2);
 				if (mTextYAxisArray[i].mmIndex > mNumberArray.length - 1) {
 					mTextYAxisArray[i].mmIndex -= mNumberArray.length;
 				}
@@ -529,11 +517,11 @@ public class NumberPicker extends View {
 	private void fling(int startYVelocity) {
 		int maxY = 0;
 		if (startYVelocity > 0) {
-			maxY = (int) (mTextSizeNormal * 10);
+			maxY = (int) (mTextSize * 10);
 			mStartY = 0;
 			mFlingScroller.fling(0, 0, 0, startYVelocity, 0, 0, 0, maxY);
 		} else if (startYVelocity < 0) {
-			maxY = (int) (mTextSizeNormal * 10);
+			maxY = (int) (mTextSize * 10);
 			mStartY = maxY;
 			mFlingScroller.fling(0, maxY, 0, startYVelocity, 0, 0, 0, maxY);
 		}
@@ -559,29 +547,74 @@ public class NumberPicker extends View {
 				
 	}
 	
-	public void setStartNumber(int startNumber) {
+	public NumberPicker setStartNumber(int startNumber) {
 		mStartNumber = startNumber;
 		verifyNumber();
 		initTextYAxisArray();
 		invalidate();
+		return this;
 	}
 	
-	public void setEndNumber(int endNumber) {
+	public NumberPicker setEndNumber(int endNumber) {
 		mEndNumber = endNumber;
 		verifyNumber();
 		initTextYAxisArray();
 		invalidate();
+		return this;
 	}
 	
-	public void setCurrentNumber(int currentNumber) {
+	public NumberPicker setCurrentNumber(int currentNumber) {
 		mCurrentNumber = currentNumber;
 		verifyNumber();
 		initTextYAxisArray();
 		invalidate();
+		return this;
 	}
 	
 	public int getCurrentNumber() {
 		return mCurrentNumber;
+	}
+	
+	public NumberPicker setRowNumber(int rowNumber) {
+		mRowNumber = rowNumber;
+		verifyNumber();
+		initTextYAxisArray();
+		invalidate();
+		return this;
+	}
+	
+	public NumberPicker setTextColor(int color) {
+		mTextColor = color;
+		initPaint();
+		invalidate();
+		return this;
+	}
+	
+	public NumberPicker setFlagTextColor(int color) {
+		mFlagTextColor = color;
+		initPaint();
+		invalidate();
+		return this;
+	}
+	
+	public NumberPicker setTextSize(float textSize) {
+		mTextSize = textSize;
+		init();
+		invalidate();
+		return this;
+	}
+	
+	public NumberPicker setFlagTextSize(float textSize) {
+		mFlagTextSize = textSize;
+		init();
+		invalidate();
+		return this;
+	}
+	
+	public NumberPicker setBackground(int color) {
+		mBackgroundColor = color;
+		invalidate();
+		return this;
 	}
 	
 	/**
@@ -630,12 +663,14 @@ public class NumberPicker extends View {
         public void onScrollStateChange(NumberPicker picker, int scrollState);
 	}
 	
-	public void setOnScrollListener(OnScrollListener l) {
+	public NumberPicker setOnScrollListener(OnScrollListener l) {
 		mOnScrollListener = l;
+		return this;
 	}
 	
-	public void setOnValueChangeListener(OnValueChangeListener l) {
+	public NumberPicker setOnValueChangeListener(OnValueChangeListener l) {
 		mOnValueChangeListener = l;
+		return this;
 	}
 	
 	/**
@@ -651,8 +686,9 @@ public class NumberPicker extends View {
         }
     }
     
-    public void setSoundEffect(Sound sound) {
+    public NumberPicker setSoundEffect(Sound sound) {
     	mSound = sound;
+    	return this;
     }
     
     @Override
@@ -666,9 +702,10 @@ public class NumberPicker extends View {
      * 
      * @param textArray
      */
-    public void setCustomTextArray(String[] textArray) {
+    public NumberPicker setCustomTextArray(String[] textArray) {
     	mTextArray = textArray;
     	invalidate();
+    	return this;
     }
-
+    
 }

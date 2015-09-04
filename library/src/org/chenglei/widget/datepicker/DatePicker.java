@@ -2,7 +2,6 @@ package org.chenglei.widget.datepicker;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 
 import android.content.Context;
 import android.util.AttributeSet;
@@ -53,7 +52,7 @@ public class DatePicker extends LinearLayout implements NumberPicker.OnValueChan
 		setDate(mCalendar.getTime());
 	}
 	
-	public void setDate(Date date) {
+	public DatePicker setDate(Date date) {
 		mCalendar.setTime(date);
 		mDayOfMonthPicker.setEndNumber(mCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
 		
@@ -61,6 +60,7 @@ public class DatePicker extends LinearLayout implements NumberPicker.OnValueChan
 		mMonthPicker.setCurrentNumber(mCalendar.get(Calendar.MONTH) + 1);
 		mDayOfMonthPicker.setCurrentNumber(mCalendar.get(Calendar.DAY_OF_MONTH));
 		
+		return this;
 	}
 
 	@Override
@@ -96,8 +96,9 @@ public class DatePicker extends LinearLayout implements NumberPicker.OnValueChan
         void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth);
     }
     
-    public void setOnDateChangedListener(OnDateChangedListener l) {
+    public DatePicker setOnDateChangedListener(OnDateChangedListener l) {
     	mOnDateChangedListener = l;
+    	return this;
     }
     
     private void notifyDateChanged() {
@@ -118,10 +119,11 @@ public class DatePicker extends LinearLayout implements NumberPicker.OnValueChan
     	return mCalendar.get(Calendar.DAY_OF_MONTH);
     }
     
-    public void setSoundEffect(Sound sound) {
+    public DatePicker setSoundEffect(Sound sound) {
     	mYearPicker.setSoundEffect(sound);
     	mMonthPicker.setSoundEffect(sound);
     	mDayOfMonthPicker.setSoundEffect(sound);
+    	return this;
     }
     
     @Override
@@ -130,6 +132,49 @@ public class DatePicker extends LinearLayout implements NumberPicker.OnValueChan
     	mYearPicker.setSoundEffectsEnabled(soundEffectsEnabled);
     	mMonthPicker.setSoundEffectsEnabled(soundEffectsEnabled);
     	mDayOfMonthPicker.setSoundEffectsEnabled(soundEffectsEnabled);
+    }
+    
+    public DatePicker setRowNumber(int rowNumber) {
+    	mYearPicker.setRowNumber(rowNumber);
+    	mMonthPicker.setRowNumber(rowNumber);
+    	mDayOfMonthPicker.setRowNumber(rowNumber);
+    	return this;
+    }
+    
+    public DatePicker setTextSize(float textSize) {
+    	mYearPicker.setTextSize(textSize);
+    	mMonthPicker.setTextSize(textSize);
+    	mDayOfMonthPicker.setTextSize(textSize);
+    	return this;
+    }
+    
+    public DatePicker setFlagTextSize(float textSize) {
+    	mYearPicker.setFlagTextSize(textSize);
+    	mMonthPicker.setFlagTextSize(textSize);
+    	mDayOfMonthPicker.setFlagTextSize(textSize);
+    	return this;
+    }
+    
+    public DatePicker setTextColor(int color) {
+    	mYearPicker.setTextColor(color);
+    	mMonthPicker.setTextColor(color);
+    	mDayOfMonthPicker.setTextColor(color);
+    	return this;
+    }
+    
+    public DatePicker setFlagTextColor(int color) {
+    	mYearPicker.setFlagTextColor(color);
+    	mMonthPicker.setFlagTextColor(color);
+    	mDayOfMonthPicker.setFlagTextColor(color);
+    	return this;
+    }
+    
+    public DatePicker setBackground(int color) {
+    	super.setBackgroundColor(color);
+    	mYearPicker.setBackground(color);
+    	mMonthPicker.setBackground(color);
+    	mDayOfMonthPicker.setBackground(color);
+    	return this;
     }
 
 }

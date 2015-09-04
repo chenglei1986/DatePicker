@@ -2,10 +2,8 @@
 <resources>
 
     <declare-styleable name="NumberPicker">
-        <attr name="textColorHighLight" format="color" />
-        <attr name="textColorNormal" format="color" />
-        <attr name="textSizeHighLight" format="float|dimension" />
-        <attr name="textSizeNormal" format="float|dimension" />
+        <attr name="textColor" format="color" />
+        <attr name="textSize" format="float|dimension" />
         <attr name="startNumber" format="integer" />
         <attr name="endNumber" format="integer" />
         <attr name="currentNumber" format="integer" />
@@ -14,8 +12,7 @@
         <attr name="flagTextSize" format="dimension" />
         <attr name="flagTextColor" format="color" />
         <attr name="backgroundColor" format="color" />
-        <attr name="lines" format="integer" />
+        <attr name="rowNumber" format="integer" />
     </declare-styleable>
-    
 
 </resources>

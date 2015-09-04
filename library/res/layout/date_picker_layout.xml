@@ -16,10 +16,9 @@
         app:startNumber="1"
         app:endNumber="12"
         app:currentNumber="16"
-        app:textSizeHighLight="24dp"
-        app:textSizeNormal="22dp"
+        app:textSize="22sp"
         app:verticalSpacing="36dp"
-        app:lines="3" />
+        app:rowNumber="3" />
 
     <org.chenglei.widget.datepicker.NumberPicker
         android:id="@+id/day_picker"
@@ -32,10 +31,9 @@
         app:startNumber="1"
         app:endNumber="31"
         app:currentNumber="11"
-        app:textSizeHighLight="24dp"
-        app:textSizeNormal="22dp"
+        app:textSize="22sp"
         app:verticalSpacing="36dp"
-        app:lines="3" />
+        app:rowNumber="3" />
     
     <org.chenglei.widget.datepicker.NumberPicker
         android:id="@+id/year_picker"
@@ -48,9 +46,8 @@
         app:startNumber="1900"
         app:endNumber="2100"
         app:currentNumber="1900"
-        app:textSizeHighLight="24dp"
-        app:textSizeNormal="22dp"
+        app:textSize="22sp"
         app:verticalSpacing="36dp"
-        app:lines="3" />
+        app:rowNumber="3" />
 
 </LinearLayout>
