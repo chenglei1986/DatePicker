@@ -3,6 +3,7 @@ DatePicker
 ## ScreenShots
 
 ![](screenshots/screenshot1.png)
+![](screenshots/screenshot2.png)
 
 ## How to use
 
