@@ -27,3 +27,19 @@ DatePicker
 		.setBackground(Color.BLACK)
 		.setSoundEffectsEnabled(true);
 ```
+```java
+    mDatePicker3.setTextColor(Color.BLACK)
+		.setFlagTextColor(Color.BLACK)
+		.setBackground(Color.RED)
+		.setTextSize(25)
+		.setFlagTextSize(15)
+		.setRowNumber(5)
+		.setOnDateChangedListener(new DatePicker.OnDateChangedListener() {
+
+			@Override
+			public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+
+				Log.i("DatePicker", year + "-" + monthOfYear + "-" + dayOfMonth);
+			}
+		});
+```

@@ -8,19 +8,25 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:orientation="vertical" >
 
         <org.chenglei.widget.datepicker.DatePicker
             android:id="@+id/date_picker1"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center" />
+            android:layout_height="wrap_content" />
 
         <org.chenglei.widget.datepicker.DatePicker
             android:id="@+id/date_picker2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center" />
+            android:layout_marginTop="16dp" />
+
+        <org.chenglei.widget.datepicker.DatePicker
+            android:id="@+id/date_picker3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" />
     </LinearLayout>
 
 </ScrollView>

@@ -73,7 +73,7 @@ public class DatePicker extends LinearLayout implements NumberPicker.OnValueChan
 			mCalendar.set(Calendar.MONTH, newVal - 1);
 			mDayOfMonthPicker.setEndNumber(mCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
 		} else if (picker == mDayOfMonthPicker) {
-			mCalendar.set(Calendar.DAY_OF_WEEK, newVal);
+			mCalendar.set(Calendar.DAY_OF_MONTH, newVal);
 		}
 		
 		notifyDateChanged();
