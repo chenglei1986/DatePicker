@@ -67,11 +67,23 @@ public class DatePicker extends LinearLayout implements NumberPicker.OnValueChan
 	public void onValueChange(final NumberPicker picker, final int oldVal, final int newVal) {
 		
 		if (picker == mYearPicker) {
-			mCalendar.set(Calendar.YEAR, newVal);
-			mDayOfMonthPicker.setEndNumber(mCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+            int dayOfMonth = mCalendar.get(Calendar.DAY_OF_MONTH);
+			mCalendar.set(newVal, mCalendar.get(Calendar.MONTH), 1);
+            int lastDayOfMonth = mCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+            if (dayOfMonth > lastDayOfMonth) {
+                dayOfMonth = lastDayOfMonth;
+            }
+            mCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+			mDayOfMonthPicker.setEndNumber(lastDayOfMonth);
 		} else if (picker == mMonthPicker) {
-			mCalendar.set(Calendar.MONTH, newVal - 1);
-			mDayOfMonthPicker.setEndNumber(mCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+            int dayOfMonth = mCalendar.get(Calendar.DAY_OF_MONTH);
+            mCalendar.set(mCalendar.get(Calendar.YEAR), newVal - 1, 1);
+            int lastDayOfMonth = mCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+            if (dayOfMonth > lastDayOfMonth) {
+                dayOfMonth = lastDayOfMonth;
+            }
+            mCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            mDayOfMonthPicker.setEndNumber(lastDayOfMonth);
 		} else if (picker == mDayOfMonthPicker) {
 			mCalendar.set(Calendar.DAY_OF_MONTH, newVal);
 		}
