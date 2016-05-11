@@ -20,7 +20,7 @@ public class Sound {
 	
 	public void playSoundEffect() {
 		mCurrVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
-		if (mSoundId != 0) {
+		if (mSoundId > 0) {
 			mSoundPool.play(mSoundId, mCurrVolume, mCurrVolume, 0, 0, 1);
 		} else {
 			mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK, mCurrVolume);
