@@ -28,7 +28,7 @@ Step 2. Add the dependency
 
 ```groovy
 dependencies {
-        compile 'com.github.chenglei1986:DatePicker:-SNAPSHOT'
+    compile 'com.github.chenglei1986:DatePicker:-SNAPSHOT'
 }
 ```
 
