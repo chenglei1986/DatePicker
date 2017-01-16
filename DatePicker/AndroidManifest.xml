@@ -1,6 +1,3 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.chenglei.widget.datepicker" >
+<manifest package="org.chenglei.widget.datepicker" >
     
-    <uses-sdk android:minSdkVersion="4"/>
-
 </manifest>
